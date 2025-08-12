@@ -22,21 +22,33 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Maven build with full debug
-        run: mvn clean install -B -e -X
+      - name: Install JAM globally
+        run: npm install -g jamjs
 
-      - name: Upload Compiled Java Artifacts
+      - name: Verify JAM installation
+        run: jam --version
+
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Build with Maven (debug)
+        run: mvn clean install -e -X
+
+      - name: Upload Java Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: java-artifacts
-          path: |
-            target/*.jar
-            target/*.war
+          path: target/*.jar
 
-      - name: Upload Compiled JS/CSS
+      - name: Upload Frontend Assets
         uses: actions/upload-artifact@v4
         with:
           name: frontend-assets
           path: |
-            src/main/webapp/resources/js/app.js
-            src/main/webapp/resources/css/style.css
+            src/main/webapp/resources/js/**/*.js
+            src/main/webapp/resources/css/**/*.css
