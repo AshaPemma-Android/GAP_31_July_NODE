@@ -1,4 +1,4 @@
-name: Maven Build Node
+name: Maven NodeJS Build
 
 on:
   workflow_dispatch:
@@ -8,20 +8,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 17
+          distribution: 'temurin'
+          java-version: '17'
 
-      - name: Build 
-        run: mvn clean install -DskipTests -Dskip.jam=true -Dexec.skip=true
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
+      - name: Install Node dependencies
+        run: npm install
+
+      # Build Node project (if you have frontend assets)
+      - name: Build Node assets
+        run: npm run build || echo "No frontend build script found"
+
+      # Build Maven backend (skip exec-maven-plugin calls)
+      - name: Build Maven Project
+        run: mvn clean package -Dskip.npm=true -Dskip.exec=true
+
+      # Upload Maven JAR (if exists)
       - name: Upload JAR artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: maven-artifact
+          name: maven-jar
           path: target/*.jar
+          if-no-files-found: ignore
+
+      # Upload Node build output (if exists)
+      - name: Upload Node build artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-build
+          path: dist/**
+          if-no-files-found: ignore
