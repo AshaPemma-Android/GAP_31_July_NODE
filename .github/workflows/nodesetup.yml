@@ -1,0 +1,19 @@
+name: Node.js Setup
+
+on:
+  workflow_dispatch
+
+jobs:
+  node-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Print Node.js Version
+        run: node -v
+
+      - name: Echo Node.js Version
+        run: echo 'Node.js Version'
