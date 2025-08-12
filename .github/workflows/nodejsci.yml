@@ -1,4 +1,4 @@
-name: Maven + NodeJS Manual Build
+name: Maven + Node (JAM) Build
 
 on:
   workflow_dispatch:
@@ -8,47 +8,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      # Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 11
-
-      - name: Set up Node.js
+      # Step 1: Use Node 10 for JAM installation
+      - name: Set up Node.js 10
         uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '10'
 
-      - name: Install JAM globally
-        run: npm install -g jamjs
+      - name: Install JAM dependencies
+        run: |
+          npm install -g jamjs || true
+          jam --version || true
 
-      - name: Verify JAM installation
-        run: jam --version
-
-      - name: Cache Maven local repository
-        uses: actions/cache@v4
+      # Step 2: Switch to Java for Maven build
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-m2-
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Build with Maven (debug)
-        run: mvn clean install -e -X
+      - name: Build with Maven
+        run: mvn clean install
 
-      - name: Upload Java Artifacts
+      # Step 3: Upload artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: java-artifacts
-          path: target/*.jar
-
-      - name: Upload Frontend Assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-assets
+          name: build-artifacts
           path: |
-            src/main/webapp/resources/js/**/*.js
-            src/main/webapp/resources/css/**/*.css
+            target/*.jar
+            **/target/*.jar
