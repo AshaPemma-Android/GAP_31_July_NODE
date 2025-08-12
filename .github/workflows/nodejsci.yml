@@ -17,26 +17,15 @@ jobs:
           distribution: temurin
           java-version: 11
 
-      - name: Set up NodeJS
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '16'   # Match what your project expects
+          node-version: '16'
 
-      - name: Install JAM
-        run: npm install -g jamjs
+      - name: Maven build with full debug
+        run: mvn clean install -B -e -X
 
-      - name: Cache Maven local repository
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-m2-
-
-      - name: Run Maven build
-        run: mvn clean install -B
-
-      - name: Upload Java Artifacts
+      - name: Upload Compiled Java Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: java-artifacts
@@ -44,10 +33,10 @@ jobs:
             target/*.jar
             target/*.war
 
-      - name: Upload Frontend Assets
+      - name: Upload Compiled JS/CSS
         uses: actions/upload-artifact@v4
         with:
           name: frontend-assets
           path: |
-            src/main/webapp/resources/js/**/*.js
-            src/main/webapp/resources/css/**/*.css
+            src/main/webapp/resources/js/app.js
+            src/main/webapp/resources/css/style.css
