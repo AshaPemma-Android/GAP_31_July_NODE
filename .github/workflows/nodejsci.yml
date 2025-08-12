@@ -17,36 +17,47 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # Check if package.json exists
+      - name: Check for Node project
+        id: check_node
+        run: |
+          if [ -f "package.json" ]; then
+            echo "node_exists=true" >> $GITHUB_ENV
+          else
+            echo "node_exists=false" >> $GITHUB_ENV
+          fi
+
+      # Set up Node only if package.json exists
       - name: Set up Node
+        if: env.node_exists == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
       - name: Install Node dependencies
+        if: env.node_exists == 'true'
         run: npm install
 
-      # Build Node project (if you have frontend assets)
       - name: Build Node assets
+        if: env.node_exists == 'true'
         run: npm run build || echo "No frontend build script found"
 
-      # Build Maven backend (skip exec-maven-plugin calls)
+      # Build Maven backend
       - name: Build Maven Project
         run: mvn clean package -Dskip.npm=true -Dskip.exec=true
 
-      # Upload Maven JAR/WAR (if exists)
-      - name: Upload Maven build artifact
+      # Upload Maven JAR
+      - name: Upload JAR artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: maven-build
-          path: |
-            target/*.jar
-            target/*.war
+          name: maven-jar
+          path: target/*.jar
           if-no-files-found: ignore
 
       # Upload Node build output (if exists)
       - name: Upload Node build artifact
-        if: success()
+        if: env.node_exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: node-build
