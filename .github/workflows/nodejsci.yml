@@ -17,6 +17,11 @@ jobs:
           distribution: temurin
           java-version: 11
 
+      - name: Set up NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'   # match version your project expects
+
       - name: Cache Maven local repository
         uses: actions/cache@v4
         with:
@@ -24,6 +29,9 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-m2-
+
+      - name: Install global JAM
+        run: npm install -g jamjs
 
       - name: Run Maven build
         run: mvn clean install -B
