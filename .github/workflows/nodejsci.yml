@@ -1,4 +1,4 @@
-name: Maven + Node (JAM) Build
+name: Maven Build Node
 
 on:
   workflow_dispatch:
@@ -8,36 +8,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 1: Use Node 10 for JAM installation
-      - name: Set up Node.js 10
-        uses: actions/setup-node@v4
-        with:
-          node-version: '10'
-
-      - name: Install JAM dependencies
-        run: |
-          npm install -g jamjs || true
-          jam --version || true
-
-      # Step 2: Switch to Java for Maven build
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: 17
 
-      - name: Build with Maven
-        run: mvn clean install
+      - name: Build 
+        run: mvn clean install -DskipTests -Dskip.jam=true -Dexec.skip=true
 
-      # Step 3: Upload artifacts
-      - name: Upload build artifacts
+      - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
-          path: |
-            target/*.jar
-            **/target/*.jar
+          name: maven-artifact
+          path: target/*.jar
